@@ -5,12 +5,9 @@ from collections import Counter
 from bs4 import BeautifulSoup
 import nltk
 from nltk.stem import PorterStemmer
-import base64
 import PIL.Image
-from streamlit import cache
 
-
-image = PIL.Image.open('llama.jpg')
+image = PIL.Image.open('logo.jpg')
 
 st.write(
     """

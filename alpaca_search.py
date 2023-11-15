@@ -83,8 +83,10 @@ for doc in docs:
     doc_id = doc.find('docno').string.strip()
     doc_ids.append(doc_id)
     docs_cleaned.append(doc.find('text').string.strip())
-    authors.append(doc.find('author').string.strip() or 'Unknown')
-    bibs.append(doc.find('bib').string.strip() or 'Unknown')
+    author_element = doc.find('author')
+    authors.append(author_element.string.strip() if author_element and author_element.string else 'Unknown')
+    bib_element = doc.find('bib')
+    bibs.append(bib_element.string.strip() if bib_element and bib_element.string else 'Unknown')
 
 # Create an inverted index for efficient search
 def create_inverted_index(docs):

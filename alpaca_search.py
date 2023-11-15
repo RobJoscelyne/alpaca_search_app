@@ -78,15 +78,25 @@ docs = soup.find_all('doc')
 docs_cleaned, titles, doc_ids, bibs, authors = [], [], [], [], []
 
 for doc in docs:
-    title = doc.find('title').string.strip()
+    title_element = doc.find('title')
+    title = title_element.string.strip() if title_element and title_element.string else 'Unknown'
     titles.append(title)
-    doc_id = doc.find('docno').string.strip()
+
+    doc_id_element = doc.find('docno')
+    doc_id = doc_id_element.string.strip() if doc_id_element and doc_id_element.string else 'Unknown'
     doc_ids.append(doc_id)
-    docs_cleaned.append(doc.find('text').string.strip())
+
+    text_element = doc.find('text')
+    doc_text = text_element.string.strip() if text_element and text_element.string else 'No text available'
+    docs_cleaned.append(doc_text)
+
     author_element = doc.find('author')
-    authors.append(author_element.string.strip() if author_element and author_element.string else 'Unknown')
+    author = author_element.string.strip() if author_element and author_element.string else 'Unknown'
+    authors.append(author)
+
     bib_element = doc.find('bib')
-    bibs.append(bib_element.string.strip() if bib_element and bib_element.string else 'Unknown')
+    bib = bib_element.string.strip() if bib_element and bib_element.string else 'Unknown'
+    bibs.append(bib)
 
 # Create an inverted index for efficient search
 def create_inverted_index(docs):

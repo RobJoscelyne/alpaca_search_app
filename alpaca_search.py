@@ -1,4 +1,3 @@
-# Import necessary libraries and modules
 import math
 import re
 import streamlit as st
@@ -7,34 +6,34 @@ from bs4 import BeautifulSoup
 import nltk
 from nltk.stem import PorterStemmer
 import PIL.Image
+import time
 
-# Load an image for display in the Streamlit app
+# Initialize Streamlit app and setup
 image = PIL.Image.open('logo.jpg')
-
-# Apply custom CSS styles to the Streamlit app
 st.write(
     """
-<style>
-    .stApp {
-        background-color: white;
-    }
-    .stTextInput input {
-        background-color: lightgrey;
-    }
-    .stApp * {
-        color: black;
-    }
-</style>
-""",
+    <style>
+        .stApp {
+            background-color: white;
+        }
+        .stTextInput input {
+            background-color: lightgrey;
+        }
+        .stApp * {
+            color: black;
+        }
+    </style>
+    """,
     unsafe_allow_html=True,
 )
 
-# Initialize the stemmer for word stemming
-stemmer = PorterStemmer()
+# Display the image in the Streamlit app
+st.image(image, width=400)
 
-# Download necessary NLTK datasets
+# Initialize the NLTK and stemming
 nltk.download('punkt')
 nltk.download('stopwords')
+stemmer = PorterStemmer()
 
 # Define BM25 parameters
 K1 = 2.6
@@ -45,7 +44,7 @@ N = 10  # Number of top results to show
 # Load stopwords for text processing
 stopwords_data = set(nltk.data.load('corpora/stopwords/english', format='raw').decode('utf-8').split())
 
-# Function to clean and preprocess the text
+# Function to clean and preprocess text
 def clean_text(text):
     # Remove HTML tags
     text = BeautifulSoup(text, 'html.parser').get_text()
@@ -70,11 +69,13 @@ def display_document(doc_id, title, author, bib, text):
     """
     return content
 
-# Parse the XML data to extract document details
+# Read and parse the XML file
 with open('cran.all.1400.xml', 'r') as f:
     soup = BeautifulSoup(f.read(), 'html.parser')
 
 docs = soup.find_all('doc')
+
+
 docs_cleaned, titles, doc_ids, bibs, authors = [], [], [], [], []
 
 for doc in docs:
@@ -91,14 +92,12 @@ for doc in docs:
     docs_cleaned.append(doc_text)
 
     author_element = doc.find('author')
-    author = author_element.string.strip() if author_element and author_element.string else 'Unknown'
-    authors.append(author)
+    authors.append(author_element.string.strip() if author_element and author_element.string else 'Unknown')
 
     bib_element = doc.find('bib')
-    bib = bib_element.string.strip() if bib_element and bib_element.string else 'Unknown'
-    bibs.append(bib)
+    bibs.append(bib_element.string.strip() if bib_element and bib_element.string else 'Unknown')
 
-# Create an inverted index for efficient search
+# Function to create an inverted index
 def create_inverted_index(docs):
     inverted_index = {}
     for i, doc in enumerate(docs):
@@ -106,13 +105,13 @@ def create_inverted_index(docs):
             inverted_index.setdefault(term, []).append(i)
     return inverted_index
 
-# Compute inverse document frequencies for terms
+# Function to compute inverse document frequencies
 def get_inverse_doc_freqs(docs):
     num_docs = len(docs)
     doc_freqs = Counter(term for doc in docs for term in set(clean_text(doc)))
     return {term: math.log(num_docs / df) for term, df in doc_freqs.items()}
 
-# Compute BM25 score for a query-document pair
+# Function to compute BM25 score
 def get_bm25_score(query, doc, idfs):
     terms = clean_text(doc)
     term_freqs = Counter(terms)
@@ -136,10 +135,10 @@ def search(query):
 inverted_index = create_inverted_index(docs_cleaned)
 idfs = get_inverse_doc_freqs(docs_cleaned)
 
-# Streamlit app interface
-st.image(image, width=400)
+# Streamlit app interface for search functionality
 query = st.text_input('Enter your query:')
 if query:
+    start_time = time.time()
     results = search(query)
     st.write(f'Search completed in {time.time() - start_time:.3f} seconds')
     for i, score in results:
